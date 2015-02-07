@@ -1,16 +1,17 @@
-package db;
+package com.monet.whatsweather.db;
 
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+
+import com.monet.whatsweather.model.City;
+import com.monet.whatsweather.model.Country;
+import com.monet.whatsweather.model.Province;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import model.City;
-import model.Country;
-import model.Province;
 
 /**
  * Created by Monet on 2015/2/3.
@@ -34,12 +35,15 @@ public class WhatsWeatherDB {
      * 将构造方法私有化
      */
     private WhatsWeatherDB(Context context) {
-        WhatsWeatherOpenHelper dbHelper = new WhatsWeatherOpenHelper(context, DB_NAME, null, VERSION);
+        WhatsWeatherOpenHelper dbHelper = new WhatsWeatherOpenHelper(context,
+                DB_NAME, null, VERSION);
         db = dbHelper.getWritableDatabase();
     }
 
     /**
      *获取WhatsWeatherDB的实例,为何用synchronized属性？
+     * 还是不是很懂，将构造方法私有化，并提供一个getInstance的方法获取实例，这样就能
+     * 保证全局范围内只有一个WhatsWheather实例
      */
     public synchronized static WhatsWeatherDB getInstance(Context context){
         if(whatsWeatherDB == null){            //若没有实例，则新建一个
@@ -49,13 +53,13 @@ public class WhatsWeatherDB {
     }
 
     /**
-     * 将Province实例存储到数据库
+     * 将Province实例存储到数据库,因province_id是自动递增的，所以不用手动存储
      */
     public void saveProvince(Province province){
         if(province != null) {
             ContentValues values = new ContentValues();
             values.put("province_name", province.getProvinceName());
-            values.put("province.code", province.getProvinceCode());
+            values.put("province_code", province.getProvinceCode());
             db.insert("Province", null, values);
         }
     }
@@ -65,7 +69,7 @@ public class WhatsWeatherDB {
      * 此处的list是为后面activity的下拉菜单做准备的
      */
     public List<Province> loadProvinces() {
-        List<Province> list = new ArrayList<>();
+        List<Province> list = new ArrayList<Province>();
         Cursor cursor = db.query("Province", null, null, null, null, null, null );
         if (cursor.moveToFirst()) {
             do {
@@ -80,7 +84,7 @@ public class WhatsWeatherDB {
     }
 
     /**
-     * 将City实例存储到数据库
+     * 将City实例存储到数据库,因city_id是自动递增的，所以不用手动存储
      */
     public void saveCity(City city) {
         if (city != null) {
@@ -97,8 +101,8 @@ public class WhatsWeatherDB {
      */
     public List<City> loadCites(int provinceId) {
         List<City> list = new ArrayList<City>();
-        Cursor cursor = db.query("City", null, "province_id=?",
-                new String[]{String.valueOf(provinceId)}, null, null, null);
+        Cursor cursor = db.query("City", null, "province_id = ?",
+                new String[] {String.valueOf(provinceId)}, null, null, null);
         if (cursor.moveToFirst()) {
             do {
                 City city = new City();
@@ -106,13 +110,15 @@ public class WhatsWeatherDB {
                 city.setCityName(cursor.getString(cursor.getColumnIndex("city_name")));
                 city.setCityCode(cursor.getString(cursor.getColumnIndex("city_code")));
                 city.setProvinceId(provinceId);
+                list.add(city);
+                Log.i("cityIddddd", String.valueOf(city.getId()));
             } while (cursor.moveToNext());
         }
         return list;
     }
 
     /**
-     * 将Country实例存储到数据库
+     * 将Country实例存储到数据库,因country_id是自动递增的，所以不用手动存储
      */
     public void saveCountry(Country country) {
         if (country != null) {
@@ -120,7 +126,7 @@ public class WhatsWeatherDB {
             values.put("country_name", country.getCountryName());
             values.put("country_code", country.getCountryCode());
             values.put("city_id", country.getCityId());
-            db.insert("County", null, values);
+            db.insert("Country", null, values);
         }
     }
 
@@ -129,7 +135,7 @@ public class WhatsWeatherDB {
      */
     public List<Country> loadCountries(int cityId) {
         List<Country> list = new ArrayList<Country>();
-        Cursor cursor = db.query("Country", null, "City_id=?",
+        Cursor cursor = db.query("Country", null, "city_id = ?",
                 new String[]{String.valueOf(cityId)}, null, null, null);
         if (cursor.moveToFirst()) {
             do {
@@ -138,10 +144,11 @@ public class WhatsWeatherDB {
                 country.setCountryName(cursor.getString(cursor.getColumnIndex("country_name")));
                 country.setCountryCode(cursor.getString(cursor.getColumnIndex("country_code")));
                 country.setCityId(cityId);
+                list.add(country);
             } while (cursor.moveToNext());
         }
         return list;
     }
-    
+
 }
 

@@ -1,4 +1,4 @@
-package model;
+package com.monet.whatsweather.model;
 
 /**
  * Created by Monet on 2015/2/3.
