@@ -1,11 +1,20 @@
 package com.monet.whatsweather.util;
 
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.text.TextUtils;
 
 import com.monet.whatsweather.db.WhatsWeatherDB;
 import com.monet.whatsweather.model.City;
 import com.monet.whatsweather.model.Country;
 import com.monet.whatsweather.model.Province;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
  * Created by Monet on 2015/2/4.
@@ -86,5 +95,76 @@ public class Utility {
         return false;
     }
 
+
+    /**
+     * 从asset路径下读取对应文件转String输出
+     */
+    public static String getFileData(Context mContext, String fileName) {
+        // TODO Auto-generated method stub
+        StringBuilder sb = new StringBuilder();
+        AssetManager am = mContext.getAssets();
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    am.open(fileName)));
+            String next = "";
+            while (null != (next = br.readLine())) {
+                sb.append(next);
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            sb.delete(0, sb.length());
+        }
+        return sb.toString().trim();
+    }
+
+
+    /**
+     *使用JSONObject解析json数据
+     * "id":"CHBJ000000", "name":"北京", "en":"Beijing", "parent1":"北京", "parent2":"直辖市", "parent3":"中国" },
+     */
+    public static void parseJSONWithJSONObject(WhatsWeatherDB whatsWeatherDB,String jsonData) {
+        try {
+            JSONArray jsonArray = new JSONArray(jsonData);
+            String preCityName = "";
+            String curCityName = "";
+            String preProvinceName = "";
+            String curProvinceName = "";
+            String countryName = "";
+            int countProvince = 0;
+            int countCity = 0;
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                curProvinceName = jsonObject.getString("parent2");
+                curCityName = jsonObject.getString("parent1");
+                countryName = jsonObject.getString("name");
+                if (!curProvinceName.equals(preProvinceName)) {
+                    Province province = new Province();
+//                  只存储一项provinceName，因不需要也没有provinceCode了
+                    province.setProvinceName(curProvinceName);
+                    whatsWeatherDB.saveProvince(province);
+                    preProvinceName = curProvinceName;
+                    countProvince = countProvince + 1;
+                }
+                if (!curCityName.equals(preCityName)) {
+                    City city = new City();
+//                  存储cityName和provinceId
+                    city.setCityName(curCityName);
+                    city.setProvinceId(countProvince);
+                    whatsWeatherDB.saveCity(city);
+                    preCityName = curCityName;
+                    countCity = countCity + 1;
+                }
+                Country country = new Country();
+//                存储countryName和cityId
+                country.setCountryName(countryName);
+                country.setCityId(countCity);
+                whatsWeatherDB.saveCountry(country);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
 }
 

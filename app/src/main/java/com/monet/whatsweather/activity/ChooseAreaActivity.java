@@ -49,11 +49,13 @@ public class ChooseAreaActivity extends Activity {
     private List<Country> countryList;
 
     /**
-     * 选中的省份、城市，及当前选中的级别
+     * 选中的省份、城市，及当前选中的级别。和使数据库只初始化一次的计数。记得用static属性，只初始化一次
      */
     private Province selectedProvince;
     private City selectedCity;
     private int currentLevel;
+    private static int justOneTime = 0;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +67,14 @@ public class ChooseAreaActivity extends Activity {
         adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, dataList);
         listView.setAdapter(adapter);
         whatsWeatherDB = WhatsWeatherDB.getInstance(this);
+//        先从本地assets加载城市列表数据到数据库中
+        if(justOneTime == 0){
+            String jsonData;
+            jsonData = Utility.getFileData(this, "Xinzhi_Citydata.txt");
+            Utility.parseJSONWithJSONObject(whatsWeatherDB, jsonData);
+            justOneTime++;
+        }
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
