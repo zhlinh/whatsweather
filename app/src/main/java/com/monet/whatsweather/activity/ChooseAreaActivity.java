@@ -52,21 +52,32 @@ public class ChooseAreaActivity extends Activity {
     private List<Country> countryList;
 
     /**
-     * 选中的省份、城市，及当前选中的级别。和使数据库只初始化一次的计数。记得用static属性，只初始化一次
+     * 选中的省份、城市，及当前选中的级别
      */
     private Province selectedProvince;
     private City selectedCity;
     private int currentLevel;
+
+    /**
+     * 使数据库只储存一次的计数。记得用static属性，只初始化一次
+     */
     private static int justOneTime = 0;
+
+    /**
+     * 是否从WeatherActivity中跳转过来的
+     */
+    private boolean isFromWeatherActivity;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        isFromWeatherActivity = getIntent().getBooleanExtra("from_weather_activity", false);
         //显示天气信息用到的SharedPrefernces
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         //prefs.get方法的第一个参数是键，第二个参数是找不到对应的键时返回的默认值
-        if (prefs.getBoolean("city_selected", false)) {
+        //加多一个条件，已经选择了城市且不是从WeatherActivity跳转过来，才会跳转到WeatherActivity
+        if (prefs.getBoolean("city_selected", false) && (!isFromWeatherActivity)) {
             Intent intent = new Intent(this, WeatherActivity.class);
             startActivity(intent);
             finish();
@@ -268,6 +279,11 @@ public class ChooseAreaActivity extends Activity {
         }else if (currentLevel == LEVEL_CITY) {
             queryProvince();
         } else {
+            //从WeatherActivity跳转过来的，再按返回键会跳转回WeatherActivity
+            if (isFromWeatherActivity) {
+                Intent intent = new Intent(this, WeatherActivity.class);
+                startActivity(intent);
+            }
             finish();
         }
     }

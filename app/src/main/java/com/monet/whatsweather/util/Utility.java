@@ -110,7 +110,7 @@ public class Utility {
             JSONArray jsonArray1 = jsonObject1.getJSONArray("weather");
             JSONObject weatherInfo = jsonArray1.getJSONObject(0);
             String cityName = weatherInfo.getString("city_name");
-            String weathercode = weatherInfo.getString("city_id");
+            String weatherCode = weatherInfo.getString("city_id");
             String lastUpdate = weatherInfo.getString("last_update");
 //            只保留时间，去掉日期
             String[] array1 = lastUpdate.split("T");
@@ -123,7 +123,7 @@ public class Utility {
             String temper1 = today.getString("low");
             String temper2 = today.getString("high");
 
-            saveWeatherInfo(context, cityName, weathercode, temper1, temper2, weatherDesp, publishTime);
+            saveWeatherInfo(context, cityName, weatherCode, temper1, temper2, weatherDesp, publishTime);
         } catch (JSONException e) {
             e.printStackTrace();
         }
