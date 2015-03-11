@@ -103,6 +103,7 @@ public class Utility {
 
     /**
      * 解析服务器返回的天气情况的JSON数据，并将解析出的数据存储到本地
+     * 传进context是因为saveWeatherInfo中要用到，Utility中的this不能生效，即不能被静态函数使用
      */
     public static void handleWeatherResponse(Context context, String response) {
         try {
